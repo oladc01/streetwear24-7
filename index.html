@@ -19,6 +19,8 @@
       onAuthStateChanged,
       updateProfile
     } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCGg7yqLwDAU3gBmfx3WQqVRWN5rp6TkFQ",
@@ -28,66 +30,289 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
 
     window.auth = auth;
+    window.db = db;
+    window.storage = storage;
     window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
     window.signInWithEmailAndPassword = signInWithEmailAndPassword;
     window.signOut = signOut;
     window.onAuthStateChanged = onAuthStateChanged;
     window.updateProfile = updateProfile;
+    window.collection = collection;
+    window.addDoc = addDoc;
+    window.getDocs = getDocs;
+    window.query = query;
+    window.where = where;
+    window.ref = ref;
+    window.uploadBytes = uploadBytes;
+    window.getDownloadURL = getDownloadURL;
   </script>
 
   <!-- Paystack -->
   <script src="https://js.paystack.co/v1/inline.js"></script>
 
+  <!-- Font Awesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
   <style>
     @keyframes fadeInUp {
-      from { opacity:0; transform:translateY(20px); }
-      to { opacity:1; transform:translateY(0); }
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     .fade-in-up { animation: fadeInUp 0.8s ease forwards; }
+    .product-card .overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .product-card:hover .overlay {
+      opacity: 1;
+    }
+    .product-card .overlay button {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+    .product-card .overlay button:hover {
+      transform: scale(1.1);
+    }
+    .product-card .cart-btn { bottom: 10px; right: 10px; }
+    .product-card .heart-btn { top: 10px; left: 10px; }
+    .product-card .share-btn { top: 10px; right: 10px; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col">
-
   <!-- Navbar -->
   <nav class="bg-white shadow-md fixed w-full z-20 top-0 left-0">
     <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
       <a href="#" class="text-2xl font-bold text-indigo-600">SC</a>
-      <div class="space-x-4">
+      <div class="flex items-center space-x-4">
+        <button id="cartBtn" class="relative">
+          <i class="fas fa-shopping-cart text-gray-700 text-2xl"></i>
+          <span id="cartCount" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+        </button>
         <span id="userNameDisplay" class="hidden text-gray-700"></span>
-        <button id="loginBtn" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition">Login</button>
-        <button id="signupBtn" class="px-4 py-2 border border-indigo-600 text-indigo-600 rounded hover:bg-indigo-100 transition">Sign Up</button>
+        <div class="relative">
+          <button id="authBtn" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition"></button>
+          <div id="authDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-30">
+            <button id="loginBtn" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-indigo-100">Login</button>
+            <button id="signupBtn" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-indigo-100">Sign Up</button>
+            <button id="profileBtn" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-indigo-100 hidden">Profile</button>
+          </div>
+        </div>
         <button id="logoutBtn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition hidden">Logout</button>
       </div>
     </div>
   </nav>
 
-  <main class="flex-grow pt-24 max-w-7xl mx-auto px-6">
+  <!-- Main Content -->
+  <div id="mainContent" class="flex-grow pt-24 max-w-7xl mx-auto px-6">
     <section class="text-center py-20 fade-in-up">
       <h1 class="text-4xl md:text-6xl font-extrabold mb-4">Welcome to <span class="text-indigo-600">Segtush Couture</span></h1>
       <p class="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto mb-10">Discover the latest trends in streetwear and urban fashion.</p>
       <button id="shopNowBtn" class="bg-indigo-600 text-white px-8 py-3 rounded text-lg hover:bg-indigo-700 transition">Shop Now</button>
     </section>
-
-    <section class="fade-in-up max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-6 mb-16">
-      <h2 class="text-2xl font-semibold mb-6 text-center">Featured Product</h2>
-      <div class="flex flex-col md:flex-row items-center gap-6">
-        <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Streetwear Hoodie" class="w-full md:w-56 rounded-lg shadow-md" loading="lazy"/>
-        <div class="flex-1">
+    <h2 class="text-2xl font-semibold mb-6 text-center">🔥 New Arrival</h2>
+    <p class="text-sm md:text-lg text-gray-700 max-w-3xl mx-auto mb-10 text-center">Be the first to discover our latest collection. Fresh styles and trends, just in and ready to elevate your look.</p>
+    <br />
+    <!-- Product Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+      <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="1">
+        <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Urban Streetwear Hoodie" class="w-full h-64 object-cover" loading="lazy"/>
+        <div class="overlay">
+          <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
+          <button class="heart-btn"><i class="fas fa-heart"></i></button>
+          <button class="share-btn"><i class="fas fa-share"></i></button>
+        </div>
+        <div class="p-4 text-center">
           <h3 class="text-xl font-bold mb-2">Urban Streetwear Hoodie</h3>
           <p class="mb-4 text-gray-600">Premium cotton hoodie. Perfect for casual looks.</p>
-          <p class="text-indigo-600 font-bold text-lg mb-4">$49.99</p>
-          <button id="buyBtn" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">Buy Now</button>
+          <p class="text-indigo-600 font-bold text-lg mb-4">₦15,000</p>
         </div>
       </div>
-    </section>
-  </main>
+      <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="2">
+        <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Classic Streetwear Tee" class="w-full h-64 object-cover" loading="lazy"/>
+        <div class="overlay">
+          <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
+          <button class="heart-btn"><i class="fas fa-heart"></i></button>
+          <button class="share-btn"><i class="fas fa-share"></i></button>
+        </div>
+        <div class="p-4 text-center">
+          <h3 class="text-xl font-bold mb-2">Classic Streetwear Tee</h3>
+          <p class="mb-4 text-gray-600">Soft cotton t-shirt for everyday wear.</p>
+          <p class="text-indigo-600 font-bold text-lg mb-4">₦10,000</p>
+        </div>
+      </div>
+      <!-- Add more products as needed -->
+         <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="2">
+        <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Classic Streetwear Tee" class="w-full h-64 object-cover" loading="lazy"/>
+        <div class="overlay">
+          <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
+          <button class="heart-btn"><i class="fas fa-heart"></i></button>
+          <button class="share-btn"><i class="fas fa-share"></i></button>
+        </div>
+        <div class="p-4 text-center">
+          <h3 class="text-xl font-bold mb-2">Classic Streetwear Tee</h3>
+          <p class="mb-4 text-gray-600">Soft cotton t-shirt for everyday wear.</p>
+          <p class="text-indigo-600 font-bold text-lg mb-4">₦10,000</p>
+        </div>
+      </div>
+   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="2">
+        <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Classic Streetwear Tee" class="w-full h-64 object-cover" loading="lazy"/>
+        <div class="overlay">
+          <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
+          <button class="heart-btn"><i class="fas fa-heart"></i></button>
+          <button class="share-btn"><i class="fas fa-share"></i></button>
+        </div>
+        <div class="p-4 text-center">
+          <h3 class="text-xl font-bold mb-2">Classic Streetwear Tee</h3>
+          <p class="mb-4 text-gray-600">Soft cotton t-shirt for everyday wear.</p>
+          <p class="text-indigo-600 font-bold text-lg mb-4">₦10,000</p>
+        </div>
+      </div>
+   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="2">
+        <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Classic Streetwear Tee" class="w-full h-64 object-cover" loading="lazy"/>
+        <div class="overlay">
+          <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
+          <button class="heart-btn"><i class="fas fa-heart"></i></button>
+          <button class="share-btn"><i class="fas fa-share"></i></button>
+        </div>
+        <div class="p-4 text-center">
+          <h3 class="text-xl font-bold mb-2">Classic Streetwear Tee</h3>
+          <p class="mb-4 text-gray-600">Soft cotton t-shirt for everyday wear.</p>
+          <p class="text-indigo-600 font-bold text-lg mb-4">₦10,000</p>
+        </div>
+      </div>
+   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="2">
+        <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Classic Streetwear Tee" class="w-full h-64 object-cover" loading="lazy"/>
+        <div class="overlay">
+          <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
+          <button class="heart-btn"><i class="fas fa-heart"></i></button>
+          <button class="share-btn"><i class="fas fa-share"></i></button>
+        </div>
+        <div class="p-4 text-center">
+          <h3 class="text-xl font-bold mb-2">Classic Streetwear Tee</h3>
+          <p class="mb-4 text-gray-600">Soft cotton t-shirt for everyday wear.</p>
+          <p class="text-indigo-600 font-bold text-lg mb-4">₦10,000</p>
+        </div>
+      </div>
+   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="2">
+        <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Classic Streetwear Tee" class="w-full h-64 object-cover" loading="lazy"/>
+        <div class="overlay">
+          <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
+          <button class="heart-btn"><i class="fas fa-heart"></i></button>
+          <button class="share-btn"><i class="fas fa-share"></i></button>
+        </div>
+        <div class="p-4 text-center">
+          <h3 class="text-xl font-bold mb-2">Classic Streetwear Tee</h3>
+          <p class="mb-4 text-gray-600">Soft cotton t-shirt for everyday wear.</p>
+          <p class="text-indigo-600 font-bold text-lg mb-4">₦10,000</p>
+        </div>
+      </div>
+   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="2">
+        <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Classic Streetwear Tee" class="w-full h-64 object-cover" loading="lazy"/>
+        <div class="overlay">
+          <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
+          <button class="heart-btn"><i class="fas fa-heart"></i></button>
+          <button class="share-btn"><i class="fas fa-share"></i></button>
+        </div>
+        <div class="p-4 text-center">
+          <h3 class="text-xl font-bold mb-2">Classic Streetwear Tee</h3>
+          <p class="mb-4 text-gray-600">Soft cotton t-shirt for everyday wear.</p>
+          <p class="text-indigo-600 font-bold text-lg mb-4">₦10,000</p>
+        </div>
+      </div>
+   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="2">
+        <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Classic Streetwear Tee" class="w-full h-64 object-cover" loading="lazy"/>
+        <div class="overlay">
+          <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
+          <button class="heart-btn"><i class="fas fa-heart"></i></button>
+          <button class="share-btn"><i class="fas fa-share"></i></button>
+        </div>
+        <div class="p-4 text-center">
+          <h3 class="text-xl font-bold mb-2">Classic Streetwear Tee</h3>
+          <p class="mb-4 text-gray-600">Soft cotton t-shirt for everyday wear.</p>
+          <p class="text-indigo-600 font-bold text-lg mb-4">₦10,000</p>
+        </div>
+      </div>
+   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="2">
+        <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Classic Streetwear Tee" class="w-full h-64 object-cover" loading="lazy"/>
+        <div class="overlay">
+          <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
+          <button class="heart-btn"><i class="fas fa-heart"></i></button>
+          <button class="share-btn"><i class="fas fa-share"></i></button>
+        </div>
+        <div class="p-4 text-center">
+          <h3 class="text-xl font-bold mb-2">Classic Streetwear Tee</h3>
+          <p class="mb-4 text-gray-600">Soft cotton t-shirt for everyday wear.</p>
+          <p class="text-indigo-600 font-bold text-lg mb-4">₦10,000</p>
+        </div>
+      </div>
+   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="2">
+        <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Classic Streetwear Tee" class="w-full h-64 object-cover" loading="lazy"/>
+        <div class="overlay">
+          <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
+          <button class="heart-btn"><i class="fas fa-heart"></i></button>
+          <button class="share-btn"><i class="fas fa-share"></i></button>
+        </div>
+        <div class="p-4 text-center">
+          <h3 class="text-xl font-bold mb-2">Classic Streetwear Tee</h3>
+          <p class="mb-4 text-gray-600">Soft cotton t-shirt for everyday wear.</p>
+          <p class="text-indigo-600 font-bold text-lg mb-4">₦10,000</p>
+        </div>
+      </div>
+ 
+    </div>
+  </div>
+
+  <!-- Profile Page -->
+  <div id="profilePage" class="flex-grow pt-24 max-w-7xl mx-auto px-6 hidden">
+    <h2 class="text-3xl font-bold mb-8 text-center">Your Profile</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- Order List -->
+      <div class="bg-white rounded-lg shadow-lg p-6">
+        <h3 class="text-xl font-semibold mb-4">Order History</h3>
+        <div id="orderList" class="space-y-4">
+          <!-- Orders will be dynamically added here -->
+        </div>
+      </div>
+      <!-- Address Book -->
+      <div class="bg-white rounded-lg shadow-lg p-6">
+        <h3 class="text-xl font-semibold mb-4">Address Book</h3>
+        <form id="addressForm" class="space-y-4">
+          <input type="text" id="addressFullName" placeholder="Full Name" class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500"/>
+          <input type="tel" id="addressContact" placeholder="Contact Number" class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500"/>
+          <textarea id="addressText" placeholder="Delivery Address" rows="2" class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500"></textarea>
+          <input type="text" id="addressCity" placeholder="City/State" class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500"/>
+          <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition">Add Address</button>
+        </form>
+        <div id="addressList" class="mt-4 space-y-2">
+          <!-- Addresses will be dynamically added here -->
+        </div>
+      </div>
+    </div>
+    <div class="mt-8 text-center">
+      <button id="logoutProfileBtn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition">Logout</button>
+    </div>
+  </div>
 
   <!-- Signup Modal -->
   <div id="signupModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
     <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
-      <button id="signupClose" class="absolute top-3 right-3 text-gray-600 hover:text-gray-900">&times;</button>
+      <button id="signupClose" class="absolute top-3 right-3 text-gray-600 hover:text-gray-900">×</button>
       <h2 class="text-2xl font-semibold mb-4">Create a New Account</h2>
       <form id="signupForm" class="space-y-4">
         <input type="text" id="signupFullName" placeholder="Full Name" required class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500"/>
@@ -102,7 +327,7 @@
   <!-- Login Modal -->
   <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
     <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
-      <button id="loginClose" class="absolute top-3 right-3 text-gray-600 hover:text-gray-900">&times;</button>
+      <button id="loginClose" class="absolute top-3 right-3 text-gray-600 hover:text-gray-900">×</button>
       <h2 class="text-2xl font-semibold mb-4">Login to Your Account</h2>
       <form id="loginForm" class="space-y-4">
         <input type="email" id="loginEmail" placeholder="Email" required class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500"/>
@@ -113,10 +338,25 @@
     </div>
   </div>
 
+  <!-- Cart Modal -->
+  <div id="cartModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative">
+      <button id="cartClose" class="absolute top-3 right-3 text-gray-600 hover:text-gray-900">×</button>
+      <h2 class="text-2xl font-semibold mb-4">Your Cart</h2>
+      <div id="cartItems" class="space-y-4 max-h-96 overflow-y-auto">
+        <!-- Cart items will be dynamically added here -->
+      </div>
+      <div class="mt-6 flex justify-between items-center">
+        <p class="text-lg font-semibold">Total: ₦<span id="cartTotal">0</span></p>
+        <button id="checkoutBtn" class="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition" disabled>Checkout</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Order Form Modal -->
   <div id="orderModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
     <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
-      <button id="orderClose" class="absolute top-3 right-3 text-gray-600 hover:text-gray-900">&times;</button>
+      <button id="orderClose" class="absolute top-3 right-3 text-gray-600 hover:text-gray-900">×</button>
       <h2 class="text-2xl font-semibold mb-4">Delivery Info</h2>
       <form id="orderForm" class="space-y-4">
         <input type="text" id="orderFullName" placeholder="Full Name" required class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500"/>
@@ -128,30 +368,113 @@
     </div>
   </div>
 
+  <!-- Contact Form Modal -->
+  <div id="contactModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+      <button id="contactClose" class="absolute top-3 right-3 text-gray-600 hover:text-gray-900">×</button>
+      <h2 class="text-2xl font-semibold mb-4">Contact Us</h2>
+      <form id="contactForm" class="space-y-4">
+        <input type="text" id="contactName" placeholder="Full Name" required class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500"/>
+        <input type="email" id="contactEmail" placeholder="Email" required class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500"/>
+        <input type="text" id="contactAddress" placeholder="Address" required class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500"/>
+        <input type="tel" id="contactPhone" placeholder="Phone Number" required class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500"/>
+        <textarea id="contactMessage" placeholder="Your Message" required rows="4" class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500"></textarea>
+        <input type="file" id="contactImage" accept="image/*" class="w-full px-4 py-2 border rounded"/>
+        <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition">Submit Request</button>
+      </form>
+      <p id="contactError" class="text-red-600 mt-2 hidden"></p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 text-white py-8">
+    <div class="max-w-7xl mx-auto px-6 text-center">
+      <p class="text-lg mb-4">Segtush Couture © 2025</p>
+      <button id="contactBtn" class="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition">Contact Us</button>
+    </div>
+  </footer>
+
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const loginModal = document.getElementById('loginModal'), signupModal = document.getElementById('signupModal'),
-        orderModal = document.getElementById('orderModal'),
-        loginBtn = document.getElementById('loginBtn'), signupBtn = document.getElementById('signupBtn'),
-        logoutBtn = document.getElementById('logoutBtn'),
-        loginClose = document.getElementById('loginClose'), signupClose = document.getElementById('signupClose'),
-        orderClose = document.getElementById('orderClose'),
-        shopNowBtn = document.getElementById('shopNowBtn'),
-        buyBtn = document.getElementById('buyBtn'),
-        userNameDisplay = document.getElementById('userNameDisplay');
+      const loginModal = document.getElementById('loginModal'),
+            signupModal = document.getElementById('signupModal'),
+            cartModal = document.getElementById('cartModal'),
+            orderModal = document.getElementById('orderModal'),
+            contactModal = document.getElementById('contactModal'),
+            mainContent = document.getElementById('mainContent'),
+            profilePage = document.getElementById('profilePage'),
+            authBtn = document.getElementById('authBtn'),
+            authDropdown = document.getElementById('authDropdown'),
+            loginBtn = document.getElementById('loginBtn'),
+            signupBtn = document.getElementById('signupBtn'),
+            profileBtn = document.getElementById('profileBtn'),
+            logoutBtn = document.getElementById('logoutBtn'),
+            logoutProfileBtn = document.getElementById('logoutProfileBtn'),
+            cartBtn = document.getElementById('cartBtn'),
+            loginClose = document.getElementById('loginClose'),
+            signupClose = document.getElementById('signupClose'),
+            cartClose = document.getElementById('cartClose'),
+            orderClose = document.getElementById('orderClose'),
+            contactClose = document.getElementById('contactClose'),
+            contactBtn = document.getElementById('contactBtn'),
+            shopNowBtn = document.getElementById('shopNowBtn'),
+            buyBtns = document.querySelectorAll('.buyBtn'),
+            addToCartBtns = document.querySelectorAll('.addToCartBtn'),
+            cartItemsContainer = document.getElementById('cartItems'),
+            cartTotalDisplay = document.getElementById('cartTotal'),
+            cartCountDisplay = document.getElementById('cartCount'),
+            checkoutBtn = document.getElementById('checkoutBtn'),
+            userNameDisplay = document.getElementById('userNameDisplay'),
+            orderList = document.getElementById('orderList'),
+            addressForm = document.getElementById('addressForm'),
+            addressList = document.getElementById('addressList'),
+            contactForm = document.getElementById('contactForm'),
+            contactError = document.getElementById('contactError');
 
-      loginBtn.onclick = () => loginModal.classList.remove('hidden');
-      signupBtn.onclick = () => signupModal.classList.remove('hidden');
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      let orders = [];
+      let addresses = JSON.parse(localStorage.getItem('addresses')) || [];
+
+      const auth = window.auth,
+            db = window.db,
+            storage = window.storage,
+            createUser = window.createUserWithEmailAndPassword,
+            signInUser = window.signInWithEmailAndPassword,
+            doSignOut = window.signOut,
+            onAuth = window.onAuthStateChanged,
+            updateProfile = window.updateProfile,
+            addDoc = window.addDoc,
+            getDocs = window.getDocs,
+            query = window.query,
+            where = window.where,
+            collection = window.collection,
+            ref = window.ref,
+            uploadBytes = window.uploadBytes,
+            getDownloadURL = window.getDownloadURL;
+
+      // Modal and page controls
+      loginBtn.onclick = () => { loginModal.classList.remove('hidden'); authDropdown.classList.add('hidden'); };
+      signupBtn.onclick = () => { signupModal.classList.remove('hidden'); authDropdown.classList.add('hidden'); };
+      profileBtn.onclick = () => {
+        mainContent.classList.add('hidden');
+        profilePage.classList.remove('hidden');
+        authDropdown.classList.add('hidden');
+        loadOrders();
+        loadAddresses();
+      };
+      cartBtn.onclick = () => cartModal.classList.remove('hidden');
+      contactBtn.onclick = () => contactModal.classList.remove('hidden');
       loginClose.onclick = () => loginModal.classList.add('hidden');
       signupClose.onclick = () => signupModal.classList.add('hidden');
+      cartClose.onclick = () => cartModal.classList.add('hidden');
       orderClose.onclick = () => orderModal.classList.add('hidden');
-      shopNowBtn.onclick = () => document.querySelector('section:nth-of-type(2)').scrollIntoView({ behavior:'smooth' });
+      contactClose.onclick = () => contactModal.classList.add('hidden');
+      authBtn.onclick = () => authDropdown.classList.toggle('hidden');
+      shopNowBtn.onclick = () => document.querySelector('.grid').scrollIntoView({ behavior: 'smooth' });
 
-      const auth = window.auth, createUser = window.createUserWithEmailAndPassword,
-            signInUser = window.signInWithEmailAndPassword, doSignOut = window.signOut,
-            onAuth = window.onAuthStateChanged, updateProfile = window.updateProfile;
-
-      const signupForm = document.getElementById('signupForm'), signupError = document.getElementById('signupError');
+      // Signup form
+      const signupForm = document.getElementById('signupForm'),
+            signupError = document.getElementById('signupError');
       signupForm.addEventListener('submit', async e => {
         e.preventDefault();
         signupError.classList.add('hidden');
@@ -168,7 +491,9 @@
         }
       });
 
-      const loginForm = document.getElementById('loginForm'), loginError = document.getElementById('loginError');
+      // Login form
+      const loginForm = document.getElementById('loginForm'),
+            loginError = document.getElementById('loginError');
       loginForm.addEventListener('submit', async e => {
         e.preventDefault();
         loginError.classList.add('hidden');
@@ -183,67 +508,263 @@
         }
       });
 
-      const orderForm = document.getElementById('orderForm');
-      orderForm.addEventListener('submit', e => {
+      // Contact form
+      contactForm.addEventListener('submit', async e => {
         e.preventDefault();
-        orderModal.classList.add('hidden');
-        // Save order details here (future Firebase/Firestore)
-        proceedToPay();
+        contactError.classList.add('hidden');
+        const name = document.getElementById('contactName').value;
+        const email = document.getElementById('contactEmail').value;
+        const address = document.getElementById('contactAddress').value;
+        const phone = document.getElementById('contactPhone').value;
+        const message = document.getElementById('contactMessage').value;
+        const image = document.getElementById('contactImage').files[0];
+        try {
+          let imageUrl = '';
+          if (image) {
+            const imageRef = ref(storage, `requests/${Date.now()}_${image.name}`);
+            await uploadBytes(imageRef, image);
+            imageUrl = await getDownloadURL(imageRef);
+          }
+          await addDoc(collection(db, 'contactRequests'), {
+            name,
+            email,
+            address,
+            phone,
+            message,
+            imageUrl,
+            timestamp: new Date(),
+            userId: auth.currentUser ? auth.currentUser.uid : null
+          });
+          contactForm.reset();
+          contactModal.classList.add('hidden');
+          alert('Request submitted successfully!');
+        } catch (err) {
+          contactError.textContent = err.message;
+          contactError.classList.remove('hidden');
+        }
       });
 
+      // Address form
+      addressForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const fullName = document.getElementById('addressFullName').value;
+        const contact = document.getElementById('addressContact').value;
+        const addressText = document.getElementById('addressText').value;
+        const city = document.getElementById('addressCity').value;
+        addresses.push({ fullName, contact, address: addressText, city });
+        localStorage.setItem('addresses', JSON.stringify(addresses));
+        addressForm.reset();
+        loadAddresses();
+      });
+
+      // Auth state listener
       onAuth(auth, user => {
         if (user) {
-          loginBtn.classList.add('hidden');
-          signupBtn.classList.add('hidden');
+          authBtn.classList.add('hidden');
           logoutBtn.classList.remove('hidden');
+          profileBtn.classList.remove('hidden');
           loginModal.classList.add('hidden');
           signupModal.classList.add('hidden');
-          userNameDisplay.textContent = `Hi, ${user.displayName}`;
+          const firstName = user.displayName ? user.displayName.split(' ')[0] : 'User';
+          userNameDisplay.textContent = `Hi, ${firstName}`;
           userNameDisplay.classList.remove('hidden');
         } else {
-          loginBtn.classList.remove('hidden');
-          signupBtn.classList.remove('hidden');
+          authBtn.classList.remove('hidden');
           logoutBtn.classList.add('hidden');
+          profileBtn.classList.add('hidden');
           userNameDisplay.classList.add('hidden');
+          mainContent.classList.remove('hidden');
+          profilePage.classList.add('hidden');
         }
       });
 
       logoutBtn.addEventListener('click', async () => {
         await doSignOut(auth);
       });
+      logoutProfileBtn.addEventListener('click', async () => {
+        await doSignOut(auth);
+      });
 
-      buyBtn.addEventListener('click', () => {
+      // Cart functions
+      function updateCart() {
+        cartItemsContainer.innerHTML = '';
+        let total = 0;
+        cart.forEach(item => {
+          total += item.price * item.quantity;
+          const itemElement = document.createElement('div');
+          itemElement.classList.add('flex', 'justify-between', 'items-center', 'border-b', 'py-2');
+          itemElement.innerHTML = `
+            <div>
+              <p class="font-semibold">${item.name}</p>
+              <p class="text-gray-600">₦${item.price} x ${item.quantity}</p>
+            </div>
+            <div class="flex space-x-2">
+              <button class="decreaseQty bg-gray-200 px-2 py-1 rounded" data-product-id="${item.id}">-</button>
+              <button class="increaseQty bg-gray-200 px-2 py-1 rounded" data-product-id="${item.id}">+</button>
+              <button class="removeItem text-red-600" data-product-id="${item.id}">Remove</button>
+            </div>
+          `;
+          cartItemsContainer.appendChild(itemElement);
+        });
+        cartTotalDisplay.textContent = total;
+        cartCountDisplay.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+        cartCountDisplay.classList.toggle('hidden', cart.length === 0);
+        checkoutBtn.disabled = cart.length === 0;
+        localStorage.setItem('cart', JSON.stringify(cart));
+      }
+
+      addToCartBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (!auth.currentUser) {
+            alert('Please login first');
+            loginModal.classList.remove('hidden');
+            return;
+          }
+          const productId = btn.parentElement.parentElement.parentElement.dataset.productId;
+          const productName = btn.parentElement.parentElement.querySelector('h3').textContent;
+          const productPrice = parseInt(btn.parentElement.parentElement.querySelector('.text-indigo-600').textContent.replace('₦', ''));
+          const existingItem = cart.find(item => item.id === productId);
+          if (existingItem) {
+            existingItem.quantity += 1;
+          } else {
+            cart.push({ id: productId, name: productName, price: productPrice, quantity: 1 });
+          }
+          updateCart();
+        });
+      });
+
+      cartItemsContainer.addEventListener('click', e => {
+        const productId = e.target.dataset.productId;
+        if (e.target.classList.contains('removeItem')) {
+          cart = cart.filter(item => item.id !== productId);
+        } else if (e.target.classList.contains('increaseQty')) {
+          const item = cart.find(item => item.id === productId);
+          if (item) item.quantity += 1;
+        } else if (e.target.classList.contains('decreaseQty')) {
+          const item = cart.find(item => item.id === productId);
+          if (item) {
+            item.quantity -= 1;
+            if (item.quantity === 0) cart = cart.filter(i => i.id !== productId);
+          }
+        }
+        updateCart();
+      });
+
+      checkoutBtn.addEventListener('click', () => {
         if (!auth.currentUser) {
           alert('Please login first');
           loginModal.classList.remove('hidden');
-        } else {
-          orderModal.classList.remove('hidden');
+          return;
         }
+        cartModal.classList.add('hidden');
+        orderModal.classList.remove('hidden');
       });
 
-      function proceedToPay() {
+      buyBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (!auth.currentUser) {
+            alert('Please login first');
+            loginModal.classList.remove('hidden');
+            return;
+          }
+          const productId = btn.parentElement.parentElement.parentElement.dataset.productId;
+          const productName = btn.parentElement.parentElement.querySelector('h3').textContent;
+          const productPrice = parseInt(btn.parentElement.parentElement.querySelector('.text-indigo-600').textContent.replace('₦', ''));
+          cart = [{ id: productId, name: productName, price: productPrice, quantity: 1 }];
+          updateCart();
+          orderModal.classList.remove('hidden');
+        });
+      });
+
+      async function loadOrders() {
+        orderList.innerHTML = '';
+        if (auth.currentUser) {
+          const q = query(collection(db, 'orders'), where('userId', '==', auth.currentUser.uid));
+          const querySnapshot = await getDocs(q);
+          orders = [];
+          querySnapshot.forEach(doc => {
+            const order = doc.data();
+            orders.push(order);
+            const orderElement = document.createElement('div');
+            orderElement.classList.add('border-b', 'py-2');
+            orderElement.innerHTML = `
+              <p class="font-semibold">Order: ${order.items.map(item => `${item.name} x${item.quantity}`).join(', ')}</p>
+              <p class="text-gray-600">Total: ₦${order.total}</p>
+              <p class="text-gray-600">Date: ${new Date(order.timestamp).toLocaleDateString()}</p>
+            `;
+            orderList.appendChild(orderElement);
+          });
+        }
+      }
+
+      function loadAddresses() {
+        addressList.innerHTML = '';
+        addresses.forEach((addr, index) => {
+          const addrElement = document.createElement('div');
+          addrElement.classList.add('border-b', 'py-2');
+          addrElement.innerHTML = `
+            <p><strong>${addr.fullName}</strong></p>
+            <p>${addr.address}, ${addr.city}</p>
+            <p>${addr.contact}</p>
+            <button class="removeAddress text-red-600" data-index="${index}">Remove</button>
+          `;
+          addressList.appendChild(addrElement);
+        });
+        addressList.querySelectorAll('.removeAddress').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const index = parseInt(btn.dataset.index);
+            addresses.splice(index, 1);
+            localStorage.setItem('addresses', JSON.stringify(addresses));
+            loadAddresses();
+          });
+        });
+      }
+
+      async function proceedToPay() {
         const contact = document.getElementById('orderContact').value;
         const address = document.getElementById('orderAddress').value;
         const city = document.getElementById('orderCity').value;
         const fullName = document.getElementById('orderFullName').value;
+        const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0) * 100;
 
         let handler = PaystackPop.setup({
           key: 'pk_test_XXXXXXXXXXXXXXXXXXXXXXXX',
           email: auth.currentUser.email,
-          amount: 4999,
+          amount: totalAmount,
           currency: 'NGN',
           metadata: {
             custom_fields: [
               { display_name: "Full Name", variable_name: "full_name", value: fullName },
               { display_name: "Contact", variable_name: "contact", value: contact },
-              { display_name: "Address", variable_name: "address", value: address + ', ' + city }
+              { display_name: "Address", variable_name: "address", value: address + ', ' + city },
+              { display_name: "Order Items", variable_name: "order_items", value: cart.map(item => `${item.name} x${item.quantity}`).join(', ') }
             ]
           },
-          callback: response => alert('Payment complete! Ref: ' + response.reference),
-          onClose: () => alert('Payment canceled')
+          callback: async response => {
+            await addDoc(collection(db, 'orders'), {
+              userId: auth.currentUser.uid,
+              items: cart,
+              total: totalAmount / 100,
+              timestamp: new Date(),
+              fullName,
+              contact,
+              address: address + ', ' + city
+            });
+            alert('Payment complete! Ref: ' + response.reference);
+            cart = [];
+            updateCart();
+            orderForm.reset();
+          },
+          onClose: () => {
+            alert('Payment canceled');
+          }
         });
         handler.openIframe();
       }
+
+      // Initialize cart and addresses
+      updateCart();
+      loadAddresses();
     });
   </script>
 </body>
