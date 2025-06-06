@@ -587,7 +587,8 @@
           itemElement.innerHTML = `
             <div>
               <p class="font-semibold">${item.name}</p>
-              <p class="text-gray-600">₦${item.price} x ${item.quantity}</p>
+              <p class="text-gray-600">₦${item.price.toLocaleString()} x ${item.quantity}</p>
+              
             </div>
             <div class="flex space-x-2">
               <button class="decreaseQty bg-gray-200 px-2 py-1 rounded" data-product-id="${item.id}">-</button>
@@ -597,7 +598,7 @@
           `;
           cartItemsContainer.appendChild(itemElement);
         });
-        cartTotalDisplay.textContent = '#' + total.toLocaleString();
+        cartTotalDisplay.textContent = total.toLocaleString();
         cartCountDisplay.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
         cartCountDisplay.classList.toggle('hidden', cart.length === 0);
         checkoutBtn.disabled = cart.length === 0;
