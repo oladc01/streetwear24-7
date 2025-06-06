@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Segtush Couture</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+</head>
+<body class="bg-white text-gray-900">
+
+  <!-- Header -->
+  <header class="bg-black text-white px-6 py-4 flex justify-between items-center">
+    <h1 class="text-2xl font-bold">Segtush Couture</h1>
+    <div>
+      <button onclick="openModal('loginModal')" class="bg-white text-black px-4 py-2 rounded mr-2">Login</button>
+      <button onclick="openModal('signupModal')" class="bg-green-500 text-white px-4 py-2 rounded">Sign Up</button>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="text-center py-16 bg-gray-100">
+    <h2 class="text-4xl font-bold mb-4">Streetwear Made for the Couture</h2>
+    <p class="mb-6 text-lg">Rock the drip. Represent the vibe.</p>
+    <button onclick="scrollToProducts()" class="bg-black text-white px-6 py-3 rounded hover:bg-gray-800">Shop Now</button>
+  </section>
+
+  <!-- Featured Products -->
+  <section id="products" class="py-12 px-6">
+    <h3 class="text-2xl font-semibold text-center mb-8">🔥 Featured Drops</h3>
+    <div class="grid md:grid-cols-3 gap-6">
+      <!-- Product -->
+      <div class="bg-white rounded shadow p-4">
+        <img onclick="showProduct('Segtush Hoodie', 15000, 'Comfy black hoodie.', 'https://via.placeholder.com/300')" src="https://via.placeholder.com/300" alt="Segtush Hoodie" class="w-full h-48 object-cover cursor-pointer rounded mb-3" />
+        <h3 class="text-lg font-semibold">Segtush Hoodie</h3>
+        <p class="text-gray-500">₦15,000</p>
+      </div>
+      <!-- Add more products as needed -->
+    </div>
+  </section>
+
+  <!-- Product Modal -->
+  <div id="productModal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50">
+    <div class="bg-white w-full max-w-lg rounded-lg p-6 relative">
+      <button onclick="closeProduct()" class="absolute top-3 right-3 text-gray-600 text-2xl">&times;</button>
+      <img id="modalImage" class="w-full h-64 object-cover rounded mb-4" />
+      <h2 id="modalTitle" class="text-xl font-bold mb-2"></h2>
+      <p id="modalDescription" class="text-gray-600 mb-2"></p>
+      <p class="text-lg font-semibold mb-4">₦<span id="modalPrice">0</span></p>
+      <button id="modalAddCart" class="bg-black text-white px-4 py-2 rounded">Add to Cart</button>
+    </div>
+  </div>
+
+  <!-- Cart Sidebar -->
+  <div id="cartSidebar" class="fixed right-0 top-0 h-full w-80 bg-white shadow-lg p-6 z-50 transform translate-x-full transition-transform">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-bold">🛒 Your Cart</h3>
+      <button onclick="toggleCart()" class="text-gray-600 text-xl">&times;</button>
+    </div>
+    <div id="cartItems" class="space-y-4 text-sm"></div>
+    <div class="mt-6 border-t pt-4">
+      <p class="font-bold">Total: ₦<span id="cartTotal">0</span></p>
+      <button onclick="payWithPaystack()" class="mt-3 bg-green-600 text-white w-full py-2 rounded">Pay Now</button>
+    </div>
+  </div>
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white p-6 rounded shadow-lg w-full max-w-sm">
+      <h3 class="text-xl font-bold mb-4">Login</h3>
+      <input type="email" placeholder="Email" class="w-full p-2 mb-3 border rounded" />
+      <input type="password" placeholder="Password" class="w-full p-2 mb-4 border rounded" />
+      <button class="bg-black text-white px-4 py-2 w-full rounded mb-2">Login</button>
+      <button onclick="closeModal('loginModal')" class="text-sm text-gray-600 w-full mt-1">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Signup Modal -->
+  <div id="signupModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white p-6 rounded shadow-lg w-full max-w-sm">
+      <h3 class="text-xl font-bold mb-4">Sign Up</h3>
+      <input type="text" placeholder="Full Name" class="w-full p-2 mb-3 border rounded" />
+      <input type="email" placeholder="Email" class="w-full p-2 mb-3 border rounded" />
+      <input type="password" placeholder="Password" class="w-full p-2 mb-4 border rounded" />
+      <button class="bg-green-600 text-white px-4 py-2 w-full rounded mb-2">Sign Up</button>
+      <button onclick="closeModal('signupModal')" class="text-sm text-gray-600 w-full mt-1">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-black text-white text-center py-6 mt-10">
+    <p>&copy; 2025 Segtush Couture. All rights reserved.</p>
+  </footer>
+
+  <script>
+    function openModal(id) {
+      document.getElementById(id).classList.remove("hidden");
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add("hidden");
+    }
+
+    function scrollToProducts() {
+      document.getElementById("products").scrollIntoView({ behavior: "smooth" });
+    }
+
+    function showProduct(title, price, desc, image) {
+      document.getElementById("modalTitle").textContent = title;
+      document.getElementById("modalPrice").textContent = price.toLocaleString();
+      document.getElementById("modalDescription").textContent = desc;
+      document.getElementById("modalImage").src = image;
+
+      document.getElementById("modalAddCart").onclick = () => {
+        addToCart(title, price);
+        closeProduct();
+      };
+
+      document.getElementById("productModal").classList.remove("hidden");
+    }
+
+    function closeProduct() {
+      document.getElementById("productModal").classList.add("hidden");
+    }
+
+    let cart = [];
+
+    function addToCart(name, price) {
+      cart.push({ name, price });
+      updateCart();
+      toggleCart(true);
+    }
+
+    function updateCart() {
+      const cartItems = document.getElementById("cartItems");
+      const cartTotal = document.getElementById("cartTotal");
+
+      cartItems.innerHTML = "";
+      let total = 0;
+
+      cart.forEach(item => {
+        total += item.price;
+        cartItems.innerHTML += `
+          <div class="flex justify-between">
+            <p>${item.name}</p>
+            <p>₦${item.price.toLocaleString()}</p>
+          </div>`;
+      });
+
+      cartTotal.textContent = total.toLocaleString();
+    }
+
+    function toggleCart(forceOpen = false) {
+      const cartSidebar = document.getElementById("cartSidebar");
+      if (forceOpen) {
+        cartSidebar.classList.remove("translate-x-full");
+      } else {
+        cartSidebar.classList.toggle("translate-x-full");
+      }
+    }
+
+    function payWithPaystack() {
+      const total = cart.reduce((sum, item) => sum + item.price, 0);
+      if (total === 0) return alert("Cart is empty!");
+
+      let handler = PaystackPop.setup({
+        key: 'pk_test_c579a902b983db2b09e9ad537bf168d8d50b8fb5e',
+        email: 'buyer@example.com',
+        amount: total * 100,
+        currency: 'NGN',
+        ref: '' + Math.floor(Math.random() * 1000000000 + 1),
+        callback: function (response) {
+          alert('Payment complete! Reference: ' + response.reference);
+        },
+        onClose: function () {
+          alert('Payment closed.');
+        }
+      });
+
+      handler.openIframe();
+    }
+  </script>
+</body>
+</html>
