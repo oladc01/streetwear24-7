@@ -1,184 +1,289 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Segtush Couture</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Segtush Couture - Fashion Store</title>
+
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    // Import the functions you need from the SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged,
+    } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCGg7yqLwDAU3gBmfx3WQqVRWN5rp6TkFQ",
+      authDomain: "streetwear24-7.firebaseapp.com",
+      projectId: "streetwear24-7",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.auth = auth;
+    window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+    window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+    window.signOut = signOut;
+    window.onAuthStateChanged = onAuthStateChanged;
+  </script>
+
+  <!-- Paystack inline script -->
   <script src="https://js.paystack.co/v1/inline.js"></script>
+
+  <style>
+    /* Simple fade-in animation */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .fade-in-up {
+      animation: fadeInUp 0.8s ease forwards;
+    }
+  </style>
 </head>
-<body class="bg-white text-gray-900">
+<body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col">
 
-  <!-- Header -->
-  <header class="bg-black text-white px-6 py-4 flex justify-between items-center">
-    <h1 class="text-2xl font-bold">Segtush Couture</h1>
-    <div>
-      <button onclick="openModal('loginModal')" class="bg-white text-black px-4 py-2 rounded mr-2">Login</button>
-      <button onclick="openModal('signupModal')" class="bg-green-500 text-white px-4 py-2 rounded">Sign Up</button>
-    </div>
-  </header>
-
-  <!-- Hero Section -->
-  <section class="text-center py-16 bg-gray-100">
-    <h2 class="text-4xl font-bold mb-4">Streetwear Made for the Couture</h2>
-    <p class="mb-6 text-lg">Rock the drip. Represent the vibe.</p>
-    <button onclick="scrollToProducts()" class="bg-black text-white px-6 py-3 rounded hover:bg-gray-800">Shop Now</button>
-  </section>
-
-  <!-- Featured Products -->
-  <section id="products" class="py-12 px-6">
-    <h3 class="text-2xl font-semibold text-center mb-8">🔥 Featured Drops</h3>
-    <div class="grid md:grid-cols-3 gap-6">
-      <!-- Product -->
-      <div class="bg-white rounded shadow p-4">
-        <img onclick="showProduct('Segtush Hoodie', 15000, 'Comfy black hoodie.', 'https://via.placeholder.com/300')" src="https://via.placeholder.com/300" alt="Segtush Hoodie" class="w-full h-48 object-cover cursor-pointer rounded mb-3" />
-        <h3 class="text-lg font-semibold">Segtush Hoodie</h3>
-        <p class="text-gray-500">₦15,000</p>
+  <!-- Navbar -->
+  <nav class="bg-white shadow-md fixed w-full z-20 top-0 left-0">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="#" class="text-2xl font-bold text-indigo-600">Segtush Couture</a>
+      <div class="space-x-4">
+        <button id="loginBtn" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition">Login</button>
+        <button id="signupBtn" class="px-4 py-2 border border-indigo-600 text-indigo-600 rounded hover:bg-indigo-100 transition">Sign Up</button>
+        <button id="logoutBtn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition hidden">Logout</button>
       </div>
-      <!-- Add more products as needed -->
     </div>
-  </section>
+  </nav>
 
-  <!-- Product Modal -->
-  <div id="productModal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50">
-    <div class="bg-white w-full max-w-lg rounded-lg p-6 relative">
-      <button onclick="closeProduct()" class="absolute top-3 right-3 text-gray-600 text-2xl">&times;</button>
-      <img id="modalImage" class="w-full h-64 object-cover rounded mb-4" />
-      <h2 id="modalTitle" class="text-xl font-bold mb-2"></h2>
-      <p id="modalDescription" class="text-gray-600 mb-2"></p>
-      <p class="text-lg font-semibold mb-4">₦<span id="modalPrice">0</span></p>
-      <button id="modalAddCart" class="bg-black text-white px-4 py-2 rounded">Add to Cart</button>
-    </div>
-  </div>
+  <!-- Main content -->
+  <main class="flex-grow pt-24 max-w-7xl mx-auto px-6">
 
-  <!-- Cart Sidebar -->
-  <div id="cartSidebar" class="fixed right-0 top-0 h-full w-80 bg-white shadow-lg p-6 z-50 transform translate-x-full transition-transform">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-xl font-bold">🛒 Your Cart</h3>
-      <button onclick="toggleCart()" class="text-gray-600 text-xl">&times;</button>
-    </div>
-    <div id="cartItems" class="space-y-4 text-sm"></div>
-    <div class="mt-6 border-t pt-4">
-      <p class="font-bold">Total: ₦<span id="cartTotal">0</span></p>
-      <button onclick="payWithPaystack()" class="mt-3 bg-green-600 text-white w-full py-2 rounded">Pay Now</button>
-    </div>
-  </div>
+    <!-- Hero Section -->
+    <section class="text-center py-20 fade-in-up">
+      <h1 class="text-4xl md:text-6xl font-extrabold mb-4">
+        Welcome to <span class="text-indigo-600">Segtush Couture</span>
+      </h1>
+      <p class="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto mb-10">
+        Discover the latest trends in streetwear and urban fashion. Shop with confidence and style.
+      </p>
+      <button id="shopNowBtn" class="bg-indigo-600 text-white px-8 py-3 rounded text-lg hover:bg-indigo-700 transition">
+        Shop Now
+      </button>
+    </section>
+
+    <!-- Featured Product Section -->
+    <section class="fade-in-up max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-6 mb-16">
+      <h2 class="text-2xl font-semibold mb-6 text-center">Featured Product</h2>
+      <div class="flex flex-col md:flex-row items-center gap-6">
+        <img
+          src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80"
+          alt="Streetwear Hoodie"
+          class="w-full md:w-56 rounded-lg shadow-md"
+          loading="lazy"
+        />
+        <div class="flex-1">
+          <h3 class="text-xl font-bold mb-2">Urban Streetwear Hoodie</h3>
+          <p class="mb-4 text-gray-600">
+            Stay warm and stylish with this premium cotton hoodie. Perfect for everyday casual looks.
+          </p>
+          <p class="text-indigo-600 font-bold text-lg mb-4">$49.99</p>
+          <button id="buyBtn" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">
+            Buy Now
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
 
   <!-- Login Modal -->
-  <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white p-6 rounded shadow-lg w-full max-w-sm">
-      <h3 class="text-xl font-bold mb-4">Login</h3>
-      <input type="email" placeholder="Email" class="w-full p-2 mb-3 border rounded" />
-      <input type="password" placeholder="Password" class="w-full p-2 mb-4 border rounded" />
-      <button class="bg-black text-white px-4 py-2 w-full rounded mb-2">Login</button>
-      <button onclick="closeModal('loginModal')" class="text-sm text-gray-600 w-full mt-1">Cancel</button>
+  <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+      <button id="loginClose" class="absolute top-3 right-3 text-gray-600 hover:text-gray-900">&times;</button>
+      <h2 class="text-2xl font-semibold mb-4">Login to Your Account</h2>
+      <form id="loginForm" class="space-y-4">
+        <input
+          type="email"
+          id="loginEmail"
+          placeholder="Email"
+          required
+          class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+        <input
+          type="password"
+          id="loginPassword"
+          placeholder="Password"
+          required
+          class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+        <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition">
+          Login
+        </button>
+      </form>
+      <p id="loginError" class="text-red-600 mt-2 hidden"></p>
     </div>
   </div>
 
   <!-- Signup Modal -->
-  <div id="signupModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white p-6 rounded shadow-lg w-full max-w-sm">
-      <h3 class="text-xl font-bold mb-4">Sign Up</h3>
-      <input type="text" placeholder="Full Name" class="w-full p-2 mb-3 border rounded" />
-      <input type="email" placeholder="Email" class="w-full p-2 mb-3 border rounded" />
-      <input type="password" placeholder="Password" class="w-full p-2 mb-4 border rounded" />
-      <button class="bg-green-600 text-white px-4 py-2 w-full rounded mb-2">Sign Up</button>
-      <button onclick="closeModal('signupModal')" class="text-sm text-gray-600 w-full mt-1">Cancel</button>
+  <div id="signupModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+      <button id="signupClose" class="absolute top-3 right-3 text-gray-600 hover:text-gray-900">&times;</button>
+      <h2 class="text-2xl font-semibold mb-4">Create a New Account</h2>
+      <form id="signupForm" class="space-y-4">
+        <input
+          type="email"
+          id="signupEmail"
+          placeholder="Email"
+          required
+          class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+        <input
+          type="password"
+          id="signupPassword"
+          placeholder="Password (min 6 chars)"
+          required
+          minlength="6"
+          class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+        <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition">
+          Sign Up
+        </button>
+      </form>
+      <p id="signupError" class="text-red-600 mt-2 hidden"></p>
     </div>
   </div>
 
-  <!-- Footer -->
-  <footer class="bg-black text-white text-center py-6 mt-10">
-    <p>&copy; 2025 Segtush Couture. All rights reserved.</p>
-  </footer>
-
   <script>
-    function openModal(id) {
-      document.getElementById(id).classList.remove("hidden");
-    }
+    // Modal controls
+    const loginModal = document.getElementById('loginModal');
+    const signupModal = document.getElementById('signupModal');
+    const loginBtn = document.getElementById('loginBtn');
+    const signupBtn = document.getElementById('signupBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const loginClose = document.getElementById('loginClose');
+    const signupClose = document.getElementById('signupClose');
 
-    function closeModal(id) {
-      document.getElementById(id).classList.add("hidden");
-    }
+    loginBtn.onclick = () => loginModal.classList.remove('hidden');
+    signupBtn.onclick = () => signupModal.classList.remove('hidden');
+    loginClose.onclick = () => loginModal.classList.add('hidden');
+    signupClose.onclick = () => signupModal.classList.add('hidden');
 
-    function scrollToProducts() {
-      document.getElementById("products").scrollIntoView({ behavior: "smooth" });
-    }
+    // Firebase auth helpers
+    const auth = window.auth;
+    const createUserWithEmailAndPassword = window.createUserWithEmailAndPassword;
+    const signInWithEmailAndPassword = window.signInWithEmailAndPassword;
+    const signOut = window.signOut;
+    const onAuthStateChanged = window.onAuthStateChanged;
 
-    function showProduct(title, price, desc, image) {
-      document.getElementById("modalTitle").textContent = title;
-      document.getElementById("modalPrice").textContent = price.toLocaleString();
-      document.getElementById("modalDescription").textContent = desc;
-      document.getElementById("modalImage").src = image;
-
-      document.getElementById("modalAddCart").onclick = () => {
-        addToCart(title, price);
-        closeProduct();
-      };
-
-      document.getElementById("productModal").classList.remove("hidden");
-    }
-
-    function closeProduct() {
-      document.getElementById("productModal").classList.add("hidden");
-    }
-
-    let cart = [];
-
-    function addToCart(name, price) {
-      cart.push({ name, price });
-      updateCart();
-      toggleCart(true);
-    }
-
-    function updateCart() {
-      const cartItems = document.getElementById("cartItems");
-      const cartTotal = document.getElementById("cartTotal");
-
-      cartItems.innerHTML = "";
-      let total = 0;
-
-      cart.forEach(item => {
-        total += item.price;
-        cartItems.innerHTML += `
-          <div class="flex justify-between">
-            <p>${item.name}</p>
-            <p>₦${item.price.toLocaleString()}</p>
-          </div>`;
-      });
-
-      cartTotal.textContent = total.toLocaleString();
-    }
-
-    function toggleCart(forceOpen = false) {
-      const cartSidebar = document.getElementById("cartSidebar");
-      if (forceOpen) {
-        cartSidebar.classList.remove("translate-x-full");
+    // Show logged in user's UI
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        loginBtn.classList.add('hidden');
+        signupBtn.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
+        loginModal.classList.add('hidden');
+        signupModal.classList.add('hidden');
       } else {
-        cartSidebar.classList.toggle("translate-x-full");
+        loginBtn.classList.remove('hidden');
+        signupBtn.classList.remove('hidden');
+        logoutBtn.classList.add('hidden');
       }
-    }
+    });
 
-    function payWithPaystack() {
-      const total = cart.reduce((sum, item) => sum + item.price, 0);
-      if (total === 0) return alert("Cart is empty!");
+    // Signup form submit
+    const signupForm = document.getElementById('signupForm');
+    const signupError = document.getElementById('signupError');
+    signupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      signupError.classList.add('hidden');
+      const email = document.getElementById('signupEmail').value;
+      const password = document.getElementById('signupPassword').value;
 
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        signupForm.reset();
+        alert('Signup successful! You are now logged in.');
+      } catch (error) {
+        signupError.textContent = error.message;
+        signupError.classList.remove('hidden');
+      }
+    });
+
+    // Login form submit
+    const loginForm = document.getElementById('loginForm');
+    const loginError = document.getElementById('loginError');
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      loginError.classList.add('hidden');
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        loginForm.reset();
+        alert('Login successful!');
+      } catch (error) {
+        loginError.textContent = error.message;
+        loginError.classList.remove('hidden');
+      }
+    });
+
+    // Logout button
+    logoutBtn.addEventListener('click', async () => {
+      await signOut(auth);
+      alert('You have logged out.');
+    });
+
+    // Shop Now button scrolls to featured product section
+    const shopNowBtn = document.getElementById('shopNowBtn');
+    shopNowBtn.addEventListener('click', () => {
+      document.querySelector('section:nth-of-type(2)').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // Paystack Buy Now button
+    const buyBtn = document.getElementById('buyBtn');
+    buyBtn.addEventListener('click', () => {
+      // Check if user is logged in
+      if (!auth.currentUser) {
+        alert('Please login to proceed with purchase.');
+        loginModal.classList.remove('hidden');
+        return;
+      }
+
+      // Initialize Paystack payment
       let handler = PaystackPop.setup({
-        key: 'pk_test_c579a902b983db2b09e9ad537bf168d8d50b8fb5e',
-        email: 'buyer@example.com',
-        amount: total * 100,
+        key: 'pk_test_XXXXXXXXXXXXXXXXXXXXXXXX', // Replace with your public test/live key
+        email: auth.currentUser.email,
+        amount: 4999, // Amount in kobo (Naira), so 4999 = ₦49.99
         currency: 'NGN',
-        ref: '' + Math.floor(Math.random() * 1000000000 + 1),
-        callback: function (response) {
-          alert('Payment complete! Reference: ' + response.reference);
-        },
+        ref: 'seg' + Math.floor(Math.random() * 1000000000 + 1),
         onClose: function () {
-          alert('Payment closed.');
+          alert('Payment window closed.');
+        },
+        callback: function (response) {
+          alert('Payment successful. Reference: ' + response.reference);
+          // Here you can add logic to record the purchase or update UI
         }
       });
-
       handler.openIframe();
-    }
+    });
   </script>
+
 </body>
 </html>
