@@ -597,7 +597,7 @@
           `;
           cartItemsContainer.appendChild(itemElement);
         });
-        cartTotalDisplay.textContent = total;
+        cartTotalDisplay.textContent = total.toLocaleString();
         cartCountDisplay.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
         cartCountDisplay.classList.toggle('hidden', cart.length === 0);
         checkoutBtn.disabled = cart.length === 0;
