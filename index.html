@@ -170,6 +170,7 @@
   </div>
 
   <script>
+  document.addEventListener('DOMContentLoaded', () => {
     // Modal controls
     const loginModal = document.getElementById('loginModal');
     const signupModal = document.getElementById('signupModal');
@@ -184,15 +185,15 @@
     loginClose.onclick = () => loginModal.classList.add('hidden');
     signupClose.onclick = () => signupModal.classList.add('hidden');
 
-    // Firebase auth helpers
+    // Firebase Auth setup
     const auth = window.auth;
     const createUserWithEmailAndPassword = window.createUserWithEmailAndPassword;
     const signInWithEmailAndPassword = window.signInWithEmailAndPassword;
     const signOut = window.signOut;
     const onAuthStateChanged = window.onAuthStateChanged;
 
-    // Show logged in user's UI
-    onAuthStateChanged(auth, user => {
+    // Show logged-in user UI
+    onAuthStateChanged(auth, (user) => {
       if (user) {
         loginBtn.classList.add('hidden');
         signupBtn.classList.add('hidden');
@@ -206,7 +207,7 @@
       }
     });
 
-    // Signup form submit
+    // Signup form
     const signupForm = document.getElementById('signupForm');
     const signupError = document.getElementById('signupError');
     signupForm.addEventListener('submit', async (e) => {
@@ -214,18 +215,21 @@
       signupError.classList.add('hidden');
       const email = document.getElementById('signupEmail').value;
       const password = document.getElementById('signupPassword').value;
-
       try {
         await createUserWithEmailAndPassword(auth, email, password);
         signupForm.reset();
-        alert('Signup successful! You are now logged in.');
+        alert('Signup successful!');
+        loginBtn.classList.add('hidden');
+        signupBtn.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
+        signupModal.classList.add('hidden');
       } catch (error) {
         signupError.textContent = error.message;
         signupError.classList.remove('hidden');
       }
     });
 
-    // Login form submit
+    // Login form
     const loginForm = document.getElementById('loginForm');
     const loginError = document.getElementById('loginError');
     loginForm.addEventListener('submit', async (e) => {
@@ -233,11 +237,14 @@
       loginError.classList.add('hidden');
       const email = document.getElementById('loginEmail').value;
       const password = document.getElementById('loginPassword').value;
-
       try {
         await signInWithEmailAndPassword(auth, email, password);
         loginForm.reset();
         alert('Login successful!');
+        loginModal.classList.add('hidden');
+        loginBtn.classList.add('hidden');
+        signupBtn.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
       } catch (error) {
         loginError.textContent = error.message;
         loginError.classList.remove('hidden');
@@ -247,43 +254,38 @@
     // Logout button
     logoutBtn.addEventListener('click', async () => {
       await signOut(auth);
-      alert('You have logged out.');
+      alert('Logged out successfully.');
     });
 
-    // Shop Now button scrolls to featured product section
+    // Shop Now button scroll
     const shopNowBtn = document.getElementById('shopNowBtn');
-    shopNowBtn.addEventListener('click', () => {
-      document.querySelector('section:nth-of-type(2)').scrollIntoView({ behavior: 'smooth' });
+    shopNowBtn?.addEventListener('click', () => {
+      document.querySelector('section:nth-of-type(2)')?.scrollIntoView({ behavior: 'smooth' });
     });
 
-    // Paystack Buy Now button
+    // Buy Now button (Paystack)
     const buyBtn = document.getElementById('buyBtn');
-    buyBtn.addEventListener('click', () => {
-      // Check if user is logged in
+    buyBtn?.addEventListener('click', () => {
       if (!auth.currentUser) {
-        alert('Please login to proceed with purchase.');
+        alert('Please log in first to purchase.');
         loginModal.classList.remove('hidden');
         return;
       }
 
-      // Initialize Paystack payment
       let handler = PaystackPop.setup({
-        key: 'pk_test_XXXXXXXXXXXXXXXXXXXXXXXX', // Replace with your public test/live key
+        key: 'pk_test_XXXXXXXXXXXXXXXXXXXXXXXX', // Replace with real key
         email: auth.currentUser.email,
-        amount: 4999, // Amount in kobo (Naira), so 4999 = ₦49.99
+        amount: 4999,
         currency: 'NGN',
-        ref: 'seg' + Math.floor(Math.random() * 1000000000 + 1),
-        onClose: function () {
-          alert('Payment window closed.');
-        },
+        ref: 'seg_' + Math.floor(Math.random() * 1000000000),
         callback: function (response) {
-          alert('Payment successful. Reference: ' + response.reference);
-          // Here you can add logic to record the purchase or update UI
-        }
+          alert('Payment complete! Ref: ' + response.reference);
+        },
+        onClose: function () {
+          alert('Payment cancelled.');
+        },
       });
       handler.openIframe();
     });
-  </script>
-
-</body>
-</html>
+  });
+</script>
