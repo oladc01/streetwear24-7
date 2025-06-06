@@ -379,8 +379,7 @@
         <input type="text" id="contactAddress" placeholder="Address" required class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500"/>
         <input type="tel" id="contactPhone" placeholder="Phone Number" required class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500"/>
         <textarea id="contactMessage" placeholder="Your Message" required rows="4" class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500"></textarea>
-        <input type="file" id="contactImage" accept="image/*" class="w-full px-4 py-2 border rounded"/>
-        <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition">Submit Request</button>
+         <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition">Submit Request</button>
       </form>
       <p id="contactError" class="text-red-600 mt-2 hidden"></p>
     </div>
@@ -517,21 +516,13 @@
         const address = document.getElementById('contactAddress').value;
         const phone = document.getElementById('contactPhone').value;
         const message = document.getElementById('contactMessage').value;
-        const image = document.getElementById('contactImage').files[0];
         try {
-          let imageUrl = '';
-          if (image) {
-            const imageRef = ref(storage, `requests/${Date.now()}_${image.name}`);
-            await uploadBytes(imageRef, image);
-            imageUrl = await getDownloadURL(imageRef);
-          }
-          await addDoc(collection(db, 'contactRequests'), {
+             await addDoc(collection(db, 'contactRequests'), {
             name,
             email,
             address,
             phone,
             message,
-            imageUrl,
             timestamp: new Date(),
             userId: auth.currentUser ? auth.currentUser.uid : null
           });
