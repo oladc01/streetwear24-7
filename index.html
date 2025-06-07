@@ -58,6 +58,11 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
   <style>
+    
+    body {
+        font-family: 'Arial', sans-serif;
+    }
+  
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
@@ -92,13 +97,90 @@
     .product-card .cart-btn { bottom: 10px; right: 10px; }
     .product-card .heart-btn { top: 10px; left: 10px; }
     .product-card .share-btn { top: 10px; right: 10px; }
+     
+    /* Categories */
+    .categories {
+        padding: 3rem 2rem;
+        background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
+    }
+
+    .categories-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .category-card {
+        background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: 2px solid transparent;
+    }
+
+    .category-card:hover {
+        transform: translateY(-5px);
+        border-color: #4ecdc4;
+        box-shadow: 0 15px 30px rgba(78, 205, 196, 0.2);
+    }
+
+    .category-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .category-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #fff;
+    }
+    h2.section-title {
+        text-align: center;
+        margin-bottom: 2rem;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #fff;
+      
+    }
+  .social-links {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        margin-top: 1rem;
+    }
+
+    .social-link {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-decoration: none;
+        font-size: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .social-link:hover {
+        transform: scale(1.1) rotate(10deg);
+        box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+    }
+
   </style>
 </head>
-<body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col">
+
+<body class="bg-gray-50 text-gray-900  min-h-screen flex flex-col">
   <!-- Navbar -->
   <nav class="bg-white shadow-md fixed w-full z-20 top-0 left-0">
     <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-      <a href="#" class="text-2xl font-bold text-indigo-600">SC</a>
+      <a href="#" class="text-2xl font-bold">SW</a>
       <div class="flex items-center space-x-4">
         <button id="cartBtn" class="relative">
           <i class="fas fa-shopping-cart text-gray-700 text-2xl"></i>
@@ -121,14 +203,12 @@
   <!-- Main Content -->
   <div id="mainContent" class="flex-grow pt-24 max-w-7xl mx-auto px-6">
     <section class="text-center py-20 fade-in-up">
-      <h1 class="text-4xl md:text-6xl font-extrabold mb-4">Welcome to <span class="text-indigo-600">Segtush Couture</span></h1>
+      <h1 class="text-4xl md:text-6xl font-extrabold mb-4">Welcome to <span class="text-indigo-600">Street Wears</span></h1>
       <p class="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto mb-10">Discover the latest trends in streetwear and urban fashion.</p>
       <button id="shopNowBtn" class="bg-indigo-600 text-white px-8 py-3 rounded text-lg hover:bg-indigo-700 transition">Shop Now</button>
     </section>
-    <h2 class="text-2xl font-semibold mb-6 text-center">🔥 New Arrival</h2>
-    <p class="text-sm md:text-lg text-gray-700 max-w-3xl mx-auto mb-10 text-center">Be the first to discover our latest collection. Fresh styles and trends, just in and ready to elevate your look.</p>
-    <br />
-    <!-- Product Grid -->
+    <h2 class="text-2xl font-semibold mb-6 text-center">New Arrival🔥</h2>
+     <!-- Product Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
       <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="1">
         <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Urban Streetwear Hoodie" class="w-full h-64 object-cover" loading="lazy"/>
@@ -144,34 +224,62 @@
         </div>
       </div>
       <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="2">
-        <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Classic Streetwear Tee" class="w-full h-64 object-cover" loading="lazy"/>
+        <img src="https://images.unsplash.com/photo-1742271057369-8e86665f43cc?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fGdyZWVuJTIwY2FwfGVufDB8fDB8fHww" alt="Green Cap" class="w-full h-64 object-cover" loading="lazy"/>
         <div class="overlay">
           <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
           <button class="heart-btn"><i class="fas fa-heart"></i></button>
           <button class="share-btn"><i class="fas fa-share"></i></button>
         </div>
         <div class="p-4 text-center">
-          <h3 class="text-xl font-bold mb-2">Classic Streetwear Tee</h3>
-          <p class="mb-4 text-gray-600">Soft cotton t-shirt for everyday wear.</p>
-          <p class="text-indigo-600 font-bold text-lg mb-4">₦10,000</p>
+          <h3 class="text-xl font-bold mb-2">Classic Green Cap</h3>
+          <p class="mb-4 text-gray-600">Classic Green Cap for everyday wear.</p>
+          <p class="text-indigo-600 font-bold text-lg mb-4">₦8,000</p>
         </div>
       </div>
       <!-- Add more products as needed -->
-         <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="2">
-        <img src="https://unsplash.com/photos/brown-long-sleeve-shirt-on-white-clothes-hanger-Fg15LdqpWrs
-           " alt="Classic Streetwear Tee" class="w-full h-64 object-cover" loading="lazy"/>
+         <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="3">
+        <img src="https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D 
+           " alt="Black crew neck T-shirt" class="w-full h-64 object-cover" loading="lazy"/>
         <div class="overlay">
           <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
           <button class="heart-btn"><i class="fas fa-heart"></i></button>
           <button class="share-btn"><i class="fas fa-share"></i></button>
         </div>
         <div class="p-4 text-center">
-          <h3 class="text-xl font-bold mb-2">Classic Streetwear Tee</h3>
+          <h3 class="text-xl font-bold mb-2">Black crew neck T-shirt</h3>
           <p class="mb-4 text-gray-600">Soft cotton t-shirt for everyday wear.</p>
           <p class="text-indigo-600 font-bold text-lg mb-4">₦10,000</p>
         </div>
       </div>
-   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="2">
+
+   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="4">
+        <img src="https://images.unsplash.com/photo-1589902860314-e910697dea18?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NTF8fHQlMjBzaGlydHxlbnwwfHwwfHx8MA%3D%3D" alt="Classic Blue T-Shirt" class="w-full h-64 object-cover" loading="lazy"/>
+        <div class="overlay">
+          <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
+          <button class="heart-btn"><i class="fas fa-heart"></i></button>
+          <button class="share-btn"><i class="fas fa-share"></i></button>
+        </div>
+        <div class="p-4 text-center">
+          <h3 class="text-xl font-bold mb-2">Classic Blue T-Shirt</h3>
+          <p class="mb-4 text-gray-600">Soft cotton t-shirt for everyday wear.</p>
+          <p class="text-indigo-600 font-bold text-lg mb-4">₦11,000</p>
+        </div>
+      </div>
+
+   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="5">
+        <img src="https://images.unsplash.com/photo-1618354691551-44de113f0164?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nzh8fGNsb3RoaW5nfGVufDB8fDB8f" alt="Classic Long sleeve" class="w-full h-64 object-cover" loading="lazy"/>
+        <div class="overlay">
+          <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
+          <button class="heart-btn"><i class="fas fa-heart"></i></button>
+          <button class="share-btn"><i class="fas fa-share"></i></button>
+        </div>
+        <div class="p-4 text-center">
+          <h3 class="text-xl font-bold mb-2">Classic Long Sleeve</h3>
+          <p class="mb-4 text-gray-600">Soft cotton long sleeve for everyday wear.</p>
+          <p class="text-indigo-600 font-bold text-lg mb-4">₦10,000</p>
+        </div>
+      </div>
+   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="6">
         <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Classic Streetwear Tee" class="w-full h-64 object-cover" loading="lazy"/>
         <div class="overlay">
           <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
@@ -184,7 +292,7 @@
           <p class="text-indigo-600 font-bold text-lg mb-4">₦10,000</p>
         </div>
       </div>
-   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="2">
+   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="7">
         <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Classic Streetwear Tee" class="w-full h-64 object-cover" loading="lazy"/>
         <div class="overlay">
           <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
@@ -197,8 +305,8 @@
           <p class="text-indigo-600 font-bold text-lg mb-4">₦10,000</p>
         </div>
       </div>
-   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="2">
-        <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Classic Streetwear Tee" class="w-full h-64 object-cover" loading="lazy"/>
+   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="8">
+        <img src="https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTE2fHxjbG90aGluZ3xlbnwwfHwwfHx8MA%3D%3D" alt="Classic Streetwear Tee" class="w-full h-64 object-cover" loading="lazy"/>
         <div class="overlay">
           <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
           <button class="heart-btn"><i class="fas fa-heart"></i></button>
@@ -210,75 +318,76 @@
           <p class="text-indigo-600 font-bold text-lg mb-4">₦10,000</p>
         </div>
       </div>
-   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="2">
-        <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Classic Streetwear Tee" class="w-full h-64 object-cover" loading="lazy"/>
+   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="9">
+        <img src="https://images.unsplash.com/photo-1611312449952-4d3ca7468453?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjQ4fHx3aGl0ZSUyMGhvb2RpZXxlbnwwfHwwfHx8MA%3D%3D" alt="White Hoodie" class="w-full h-64 object-cover" loading="lazy"/>
         <div class="overlay">
           <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
           <button class="heart-btn"><i class="fas fa-heart"></i></button>
           <button class="share-btn"><i class="fas fa-share"></i></button>
         </div>
         <div class="p-4 text-center">
-          <h3 class="text-xl font-bold mb-2">Classic Streetwear Tee</h3>
-          <p class="mb-4 text-gray-600">Soft cotton t-shirt for everyday wear.</p>
-          <p class="text-indigo-600 font-bold text-lg mb-4">₦10,000</p>
+          <h3 class="text-xl font-bold mb-2">Classic white Hoodie</h3>
+          <p class="mb-4 text-gray-600">Soft cotton white hoddie for everyday wear.</p>
+          <p class="text-indigo-600 font-bold text-lg mb-4">₦12,000</p>
         </div>
       </div>
-   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="2">
-        <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Classic Streetwear Tee" class="w-full h-64 object-cover" loading="lazy"/>
+
+   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="10">
+        <img src="https://images.unsplash.com/photo-1714729382668-7bc3bb261662?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjN8fGplYW5zfGVufDB8fDB8fHww" alt="Blue Jean" class="w-full h-64 object-cover" loading="lazy"/>
         <div class="overlay">
           <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
           <button class="heart-btn"><i class="fas fa-heart"></i></button>
           <button class="share-btn"><i class="fas fa-share"></i></button>
         </div>
         <div class="p-4 text-center">
-          <h3 class="text-xl font-bold mb-2">Classic Streetwear Tee</h3>
-          <p class="mb-4 text-gray-600">Soft cotton t-shirt for everyday wear.</p>
-          <p class="text-indigo-600 font-bold text-lg mb-4">₦10,000</p>
+          <h3 class="text-xl font-bold mb-2">Classic Blue Jean</h3>
+          <p class="mb-4 text-gray-600">Soft cotton blue jean for everyday wear.</p>
+          <p class="text-indigo-600 font-bold text-lg mb-4">₦15,000</p>
         </div>
       </div>
-   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="2">
-        <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Classic Streetwear Tee" class="w-full h-64 object-cover" loading="lazy"/>
+
+   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" category="hoddies" data-product-id="11">
+        <img src="https://images.unsplash.com/photo-1630396592737-716bd8fc70a2?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8ODZ8fHJlZCUyMGphY2tldCUyMGluJTIwYSUyMGhhbmdlcnxlbnwwfHwwfHx8MA%3D%3D" alt="Red Jacket" class="w-full h-64 object-cover" loading="lazy"/>
         <div class="overlay">
           <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
           <button class="heart-btn"><i class="fas fa-heart"></i></button>
           <button class="share-btn"><i class="fas fa-share"></i></button>
         </div>
         <div class="p-4 text-center">
-          <h3 class="text-xl font-bold mb-2">Classic Streetwear Tee</h3>
-          <p class="mb-4 text-gray-600">Soft cotton t-shirt for everyday wear.</p>
-          <p class="text-indigo-600 font-bold text-lg mb-4">₦10,000</p>
+          <h3 class="text-xl font-bold mb-2">Red Jacket</h3>
+          <p class="mb-4 text-gray-600">Soft cotton Jacket for everyday wear.</p>
+          <p class="text-indigo-600 font-bold text-lg mb-4">₦14,000</p>
         </div>
       </div>
-   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="2">
-        <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Classic Streetwear Tee" class="w-full h-64 object-cover" loading="lazy"/>
-        <div class="overlay">
-          <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
-          <button class="heart-btn"><i class="fas fa-heart"></i></button>
-          <button class="share-btn"><i class="fas fa-share"></i></button>
-        </div>
-        <div class="p-4 text-center">
-          <h3 class="text-xl font-bold mb-2">Classic Streetwear Tee</h3>
-          <p class="mb-4 text-gray-600">Soft cotton t-shirt for everyday wear.</p>
-          <p class="text-indigo-600 font-bold text-lg mb-4">₦10,000</p>
-        </div>
-      </div>
-   <div class="fade-in-up product-card bg-white rounded-lg shadow-lg overflow-hidden relative" data-product-id="2">
-        <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Classic Streetwear Tee" class="w-full h-64 object-cover" loading="lazy"/>
-        <div class="overlay">
-          <button class="cart-btn addToCartBtn"><i class="fas fa-shopping-cart"></i></button>
-          <button class="heart-btn"><i class="fas fa-heart"></i></button>
-          <button class="share-btn"><i class="fas fa-share"></i></button>
-        </div>
-        <div class="p-4 text-center">
-          <h3 class="text-xl font-bold mb-2">Classic Streetwear Tee</h3>
-          <p class="mb-4 text-gray-600">Soft cotton t-shirt for everyday wear.</p>
-          <p class="text-indigo-600 font-bold text-lg mb-4">₦10,000</p>
-        </div>
-      </div>
- 
     </div>
   </div>
 
+  <!-- Categories -->
+<section class="categories" id="collections">
+    <h2 class="section-title">Shop by Category</h2>
+    <div class="categories-grid">
+        <div class="category-card" onclick="filterByCategory('hoodies')">
+            <div class="category-icon">🎽</div>
+            <h3 class="category-name">Hoodies</h3>
+        </div>
+        <div class="category-card" onclick="filterByCategory('tees')">
+            <div class="category-icon">👕</div>
+            <h3 class="category-name">T-Shirts</h3>
+        </div>
+        <div class="category-card" onclick="filterByCategory('joggers')">
+            <div class="category-icon">👖</div>
+            <h3 class="category-name">Joggers</h3>
+        </div>
+        <div class="category-card" onclick="filterByCategory('jackets')">
+            <div class="category-icon">🧥</div>
+            <h3 class="category-name">Jackets</h3>
+        </div>
+        <div class="category-card" onclick="filterByCategory('accessories')">
+            <div class="category-icon">🧢</div>
+            <h3 class="category-name">Accessories</h3>
+        </div>
+    </div>
+</section>
   <!-- Profile Page -->
   <div id="profilePage" class="flex-grow pt-24 max-w-7xl mx-auto px-6 hidden">
     <h2 class="text-3xl font-bold mb-8 text-center">Your Profile</h2>
@@ -389,10 +498,18 @@
   <!-- Footer -->
   <footer class="bg-gray-800 text-white py-8">
     <div class="max-w-7xl mx-auto px-6 text-center">
-      <p class="text-lg mb-4">Street Wears © 2025</p>
+      <p class="text-lg mb-4">&copy; 2025 STREET WEAR. All rights reserved. | Urban fashion redefined.</p>
       <button id="contactBtn" class="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition">Contact Us</button>
+    <div class="social-links">
+            <a href="#" class="social-link">📘</a>
+            <a href="#" class="social-link">📷</a>
+            <a href="#" class="social-link">🐦</a>
+            <a href="#" class="social-link">📺</a>
+       
     </div>
   </footer>
+</body>
+
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
